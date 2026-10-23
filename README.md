@@ -24,5 +24,6 @@ Install the `Wetware.ReadRandom` package from NuGet (https://www.nuget.org/packa
 
 # Limitations
 
-- Does not poll the ECX register to determine if RDRAND and RDSEED are supported processor features
-- Does not support the REX prefix and can only operate in 32 bit mode. 
+- Requires a Windows x64 process. Values are 32-bit unsigned integers.
+- Checks CPU support before executing either instruction. Use `Cpu.IsRdRandSupported` and `Cpu.IsRdSeedSupported` to check availability; unsupported calls throw `PlatformNotSupportedException`.
+- Reads retry until the CPU reports success, so they have no fixed timeout.

@@ -1,52 +1,63 @@
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Runtime.Intrinsics.X86;
 
 namespace Wetware.ReadRandom;
 
 /// <summary>Contains methods used for reading random numbers generated from the CPU's digital random number generator (DRNG).</summary>
 public static class Cpu
 {
-    static Cpu()
-    {
-        var rdSeedOps = new byte[] { 
-            0x0f, 0xc7, 0xf8, // rdseed eax
-            0x0f, 0x92, 0x01, // setc byte ptr [rcx]
-            0xc3              // ret
-        };
+    /// <summary>Whether the current platform and CPU support reading random seeds using RDSEED.</summary>
+    public static bool IsRdSeedSupported { get; } = IsSupported(seed: true);
 
-        var rdRandOps = new byte[] { 
-            0x0f, 0xc7, 0xf0, // rdrand eax
-            0x0f, 0x92, 0x01, // setc byte ptr [rcx]
-            0xc3              // ret
-        };
+    /// <summary>Whether the current platform and CPU support reading random values using RDRAND.</summary>
+    public static bool IsRdRandSupported { get; } = IsSupported(seed: false);
 
-        // Override our internal method with our opcodes
-        Marshal.Copy(rdSeedOps, 0, typeof(Cpu).GetMethod(nameof(RdSeedInternal))!.MethodHandle.GetFunctionPointer(), rdSeedOps.Length);
-        Marshal.Copy(rdRandOps, 0, typeof(Cpu).GetMethod(nameof(RdRandInternal))!.MethodHandle.GetFunctionPointer(), rdRandOps.Length);
-    }
-
-    
-    /// <summary>Reads a random seed value from the CPU's deterministic random bit generator (DRBG).</summary>
+    /// <summary>Reads a random seed value from the CPU's enhanced, nondeterministic random number generator (ENRNG).</summary>
+    /// <exception cref="PlatformNotSupportedException">Windows x64 and RDSEED support are required.</exception>
     public static uint ReadRandomSeed() => CpuReader.Read(RdSeedInternal);
 
-    /// <summary>Reads a random value from the CPU's enhanced, nondeterministic random number generator (ENRNG).</summary>
+    /// <summary>Reads a random value from the CPU's deterministic random bit generator (DRBG).</summary>
+    /// <exception cref="PlatformNotSupportedException">Windows x64 and RDRAND support are required.</exception>
     public static uint ReadRandom() => CpuReader.Read(RdRandInternal);
 
-    /// <summary>Internal instructions for RdSeed. Not to be called directly. Use <see cref="ReadRandomSeed"/> instead.</summary>
-    [MethodImpl(MethodImplOptions.NoInlining)] // Don't inline. This function serves as a pointer to override with cpu opcodes
-    public static uint RdSeedInternal(out byte carry)
+    /// <summary>Attempts to read a random seed by executing RDSEED once.</summary>
+    /// <param name="carry">1 if a seed is available; otherwise, 0.</param>
+    /// <returns>The seed on success, or zero on failure. Zero is also a valid successful seed.</returns>
+    /// <exception cref="PlatformNotSupportedException">Windows x64 and RDSEED support are required.</exception>
+    internal static unsafe uint RdSeedInternal(out byte carry)
     {
-        // Needed to compile
-        carry = byte.MaxValue;
-        return 0;
+        if (!IsRdSeedSupported)
+            throw new PlatformNotSupportedException("RDSEED requires Windows x64 and a CPU that supports RDSEED.");
+
+        byte status;
+        var result = CpuInstructions.RdSeed(&status);
+        carry = status;
+        return result;
     }
 
-    /// <summary>Internal instructions for RdRand. Not to be called directly. Use <see cref="ReadRandom"/> instead.</summary>
-    [MethodImpl(MethodImplOptions.NoInlining)] // Don't inline. This function serves as a pointer to override with cpu opcodes
-    public static uint RdRandInternal(out byte carry)
+    /// <summary>Attempts to read a random value by executing RDRAND once.</summary>
+    /// <param name="carry">1 if a value is available; otherwise, 0.</param>
+    /// <returns>The value on success, or zero on failure. Zero is also a valid successful value.</returns>
+    /// <exception cref="PlatformNotSupportedException">Windows x64 and RDRAND support are required.</exception>
+    internal static unsafe uint RdRandInternal(out byte carry)
     {
-        // Needed to compile
-        carry = byte.MaxValue;
-        return 0;
+        if (!IsRdRandSupported)
+            throw new PlatformNotSupportedException("RDRAND requires Windows x64 and a CPU that supports RDRAND.");
+
+        byte status;
+        var result = CpuInstructions.RdRand(&status);
+        carry = status;
+        return result;
+    }
+
+    private static bool IsSupported(bool seed)
+    {
+        if (!OperatingSystem.IsWindows() || RuntimeInformation.ProcessArchitecture != Architecture.X64 || !X86Base.IsSupported)
+            return false;
+
+        var maxLeaf = X86Base.CpuId(0, 0).Eax;
+        return seed
+            ? maxLeaf >= 7 && (X86Base.CpuId(7, 0).Ebx & (1 << 18)) != 0
+            : maxLeaf >= 1 && (X86Base.CpuId(1, 0).Ecx & (1 << 30)) != 0;
     }
 }

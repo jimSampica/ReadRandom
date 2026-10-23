@@ -1,5 +1,7 @@
 using System;
+using System.Threading.Tasks;
 using Wetware.ReadRandom;
+using Xunit;
 
 namespace Tests;
 
@@ -16,16 +18,35 @@ internal static class Program
         switch (args[1])
         {
             case "rdrand":
+                Assert.True(Cpu.IsRdRandSupported);
                 instruction = Cpu.RdRandInternal;
                 read = Cpu.ReadRandom;
                 break;
             case "rdseed":
+                Assert.True(Cpu.IsRdSeedSupported);
                 instruction = Cpu.RdSeedInternal;
                 read = Cpu.ReadRandomSeed;
                 break;
+            case "unsupported":
+                Assert.False(Cpu.IsRdRandSupported);
+                Assert.False(Cpu.IsRdSeedSupported);
+                Assert.Throws<PlatformNotSupportedException>(() => Cpu.ReadRandom());
+                Assert.Throws<PlatformNotSupportedException>(() => Cpu.ReadRandomSeed());
+                Assert.Throws<PlatformNotSupportedException>(() => Cpu.RdRandInternal(out _));
+                Assert.Throws<PlatformNotSupportedException>(() => Cpu.RdSeedInternal(out _));
+                Console.WriteLine("Hardware probe passed.");
+                return 0;
             default:
                 return 2;
         }
+
+        // Concurrent first reads must share a fully initialized instruction buffer.
+        Parallel.For(0, 32, _ => { read(); });
+
+        // The executable allocation must remain valid after managed objects are collected.
+        GC.Collect();
+        GC.WaitForPendingFinalizers();
+        GC.Collect();
 
         var succeeded = false;
         for (var attempt = 0; attempt < 10000; attempt++)

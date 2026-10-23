@@ -17,7 +17,10 @@ public class CpuHardwareTests
     [Trait("Category", "Hardware")]
     public Task ReadRandomSeed_AndRdSeedInternal_CompleteSuccessfully() => RunProbe("rdseed");
 
-    private static async Task RunProbe(string instruction)
+    [Fact]
+    public Task Reads_WithHardwareIntrinsicsDisabled_ThrowPlatformNotSupported() => RunProbe("unsupported", disableHardwareIntrinsics: true);
+
+    private static async Task RunProbe(string instruction, bool disableHardwareIntrinsics = false)
     {
         var startInfo = new ProcessStartInfo("dotnet")
         {
@@ -32,6 +35,11 @@ public class CpuHardwareTests
         // Verify the normal runtime configuration even if the parent disabled W^X.
         startInfo.Environment.Remove("DOTNET_EnableWriteXorExecute");
         startInfo.Environment.Remove("COMPlus_EnableWriteXorExecute");
+        if (disableHardwareIntrinsics)
+        {
+            startInfo.Environment["DOTNET_EnableHWIntrinsic"] = "0";
+            startInfo.Environment["COMPlus_EnableHWIntrinsic"] = "0";
+        }
 
         using var process = Process.Start(startInfo)!;
         var stdout = process.StandardOutput.ReadToEndAsync();
