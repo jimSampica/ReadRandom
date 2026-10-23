@@ -1,7 +1,7 @@
 using System.Runtime.InteropServices;
 using System.Runtime.Intrinsics.X86;
 
-namespace Wetware.ReadRandom;
+namespace ReadRandom;
 
 /// <summary>Contains methods used for reading random numbers generated from the CPU's digital random number generator (DRNG).</summary>
 public static class Cpu

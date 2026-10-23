@@ -22,6 +22,6 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Wetware.ReadRandom\Wetware.ReadRandom.csproj" />
+    <ProjectReference Include="..\ReadRandom\ReadRandom.csproj" />
   </ItemGroup>
 </Project>

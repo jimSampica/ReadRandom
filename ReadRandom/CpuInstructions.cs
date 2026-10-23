@@ -1,7 +1,7 @@
 using System.ComponentModel;
 using System.Runtime.InteropServices;
 
-namespace Wetware.ReadRandom;
+namespace ReadRandom;
 
 internal static unsafe partial class CpuInstructions
 {

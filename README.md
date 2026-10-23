@@ -10,11 +10,11 @@ See https://www.intel.com/content/www/us/en/developer/articles/guide/intel-digit
 
 # Installing
 
-Install the `Wetware.ReadRandom` package from NuGet (https://www.nuget.org/packages/Wetware.ReadRandom)
+Install the `ReadRandom` package from NuGet (https://www.nuget.org/packages/ReadRandom)
 
 # Usage
 
-    using Wetware.ReadRandom;
+    using ReadRandom;
     
     // Read a random seed value from the CPU
     uint seed = Cpu.ReadRandomSeed();

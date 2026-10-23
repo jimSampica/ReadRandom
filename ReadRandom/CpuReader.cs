@@ -1,4 +1,4 @@
-namespace Wetware.ReadRandom;
+namespace ReadRandom;
 
 internal static class CpuReader
 {

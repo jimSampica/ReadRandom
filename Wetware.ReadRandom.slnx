@@ -1,4 +1,0 @@
-<Solution>
-  <Project Path="Tests/Tests.csproj" />
-  <Project Path="Wetware.ReadRandom/Wetware.ReadRandom.csproj" />
-</Solution>

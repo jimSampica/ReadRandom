@@ -1,5 +1,5 @@
 using System;
-using Wetware.ReadRandom;
+using ReadRandom;
 using Xunit;
 
 namespace Tests;
