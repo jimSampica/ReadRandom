@@ -5,28 +5,8 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-		<Authors>James Sampica</Authors>
-		<Description>Dotnet library for reading random numbers from entropy-generating hardware.</Description>
-		<PackageProjectUrl>https://github.com/jimSampica/ReadRandom</PackageProjectUrl>
-		<RepositoryUrl>https://github.com/jimSampica/ReadRandom</RepositoryUrl>
-		<IncludeSymbols>True</IncludeSymbols>
-		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
-		<GenerateDocumentationFile>True</GenerateDocumentationFile>
-		<EmbedUntrackedSources>true</EmbedUntrackedSources>
-		<PackageReadmeFile>README.md</PackageReadmeFile>
-	</PropertyGroup>
-	<PropertyGroup Condition="'$(Configuration)' == 'Release'">
-		<ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
 	</PropertyGroup>
 	<ItemGroup>
 		<InternalsVisibleTo Include="Tests" />
-		<None Include="..\README.md" Pack="true" PackagePath="\" />
-	</ItemGroup>
-	<ItemGroup>
-		<PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0">
-			<PrivateAssets>all</PrivateAssets>
-			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-		</PackageReference>
 	</ItemGroup>
 </Project>
